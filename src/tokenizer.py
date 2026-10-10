@@ -1,16 +1,19 @@
 
 class Tokenizer:
-    def __int__(self):
-        self.unique_characters : set[str]= {}
+    def __init__(self):
+        self.unique_characters : list[str] = list()
 
     def collect_characters(self, text : str) -> None:
-        unique_chars : set[str] = set(text)
-        self.unique_characters.update(unique_chars)
+        unique_chars : set[str] = set(text) 
 
-    def build_vocab(self, text : str) -> None: 
-        self.unique_chars : {str} = sorted(set(text)) # not unique char list for now, just text
-        self.stoi : dict[str : int] = {char: i for i, char in enumerate(self.unique_chars)} # string to token ID
-        self.itos : dict[int : str] = {i: char for i, char in enumerate(self.unique_chars)} # Token ID to string
+        for char in unique_chars: 
+            if char not in self.unique_characters:
+                self.unique_characters.append(char)
+        self.unique_characters = sorted(self.unique_characters)
+
+    def build_vocab(self) -> None: 
+        self.stoi : dict[str , int] = {char: i for i, char in enumerate(self.unique_characters)} # string to token ID
+        self.itos : dict[int , str] = {i: char for i, char in enumerate(self.unique_characters)} # Token ID to string
 
     def encode(self, text : str) -> list[int]:
         encoded_text : list[int] = [self.stoi[char] for char in text]

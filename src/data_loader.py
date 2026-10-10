@@ -5,17 +5,16 @@ import torch
 import numpy as np
 
 class Data_Loader:
-    def read_chunks(self, file_path : str, chunk_size : int = 64 * 1024) -> Iterator[str]:
+    def read_chunks(self, file_path : str, chunk_size : int = 10_000) -> Iterator[str]:
         with open(file_path, encoding="utf-8") as file:
             while chunk := file.read(chunk_size):
                 yield chunk
 
-    def text_to_tensor(self, text : str, token_ids : list[int], tokenizer : Tokenizer) -> torch.tensor:
-        data : torch.tensor = torch.tensor(token_ids, dtype=torch.long)
+    def token_ids_to_tensor(self, token_ids : list[list[int]]) -> torch.Tensor:
+        data : torch.Tensor = torch.tensor(token_ids, dtype=torch.long)
         return data 
 
     def preprocess(self, file_path : str, file_size : int, tokenizer : Tokenizer, chunk_size : int = 10_000, train_ratio : float = 0.9) -> tuple[str, str]:
-        token_ids : list[int] = tokenizer.encode(text)
 
         last_train_index : int = int(file_size * train_ratio)
         first_val_index : int = file_size - last_train_index
@@ -64,20 +63,36 @@ class Data_Loader:
         return train_path, val_path
 
 
-    def iter_training_batches(self, file_path : str, chunk_size : int, file_size : int, tokenizer : Tokenizer, split_ratio : list[float] = [0.9, 0.1]) -> Iterator[torch.tensor]:
-        #TODO: batch logic, convert into tensor
-     
-            yield token_tensor
+    def iter_batches(self, file_path : str, sequence_length : int, batch_size : int) -> Iterator[tuple[torch.Tensor, torch.Tensor]]:
 
-    def iter_validation_batches(self, file_path : str, chunk_size : int, file_size : int, tokenizer : Tokenizer, split_ratio : list[float] = [0.9, 0.1]) -> Iterator[torch.tensor]:
+        if sequence_length <= 0 or batch_size <= 0:
+            raise ValueError("Sequence length and batch size must be positive")
 
+        token_ids = np.load(file_path, mmap_mode="r")
+        current_index = 0
 
-        # chunk up to 90% line should stream into model.train
-        # chunk after 90 should then --------||---model.val
-        #TODO: stream as validation data into model in last stages
+        while current_index + sequence_length < len(token_ids):
+            input_rows = []
+            output_rows = []
 
-        for 
+            for _ in range(batch_size):
+                if current_index + sequence_length >= len(token_ids):
+                    break
 
+                input_sequence : list[int] = token_ids[current_index : current_index + sequence_length].tolist()
+                
+                target_index = current_index + 1
+                target_sequence : list[int] = token_ids[target_index : target_index + sequence_length].tolist()
+                
+                input_rows.append(input_sequence)
+                output_rows.append(target_sequence)
+
+                current_index += 1
+
+            inputs = self.token_ids_to_tensor(input_rows)
+            targets = self.token_ids_to_tensor(output_rows)
+
+            yield inputs, targets
 
 
 
