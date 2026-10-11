@@ -3,6 +3,7 @@ from collections.abc import Iterator
 from tokenizer import Tokenizer
 import torch
 import numpy as np
+from pathlib import Path
 
 class Data_Loader:
     def read_chunks(self, file_path : str, chunk_size : int = 10_000) -> Iterator[str]:
@@ -22,8 +23,9 @@ class Data_Loader:
         if last_train_index <= 0 or first_val_index <= 0:
             raise ValueError("Both splits must contain data.")
 
-        train_path = "../data/train.txt"
-        val_path = "../data/val.txt"
+        source : str = Path(file_path)
+        train_path = source.parent.parent / "processed" / f"{source.stem}_train.npy"
+        val_path = source.parent.parent / "processed" / f"{source.stem}_val.npy"
 
         train_ids = np.lib.format.open_memmap(
             train_path, mode="w+", dtype=np.int64, shape=(last_train_index,)
